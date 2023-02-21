@@ -36,29 +36,16 @@ func (s *Server) Start()  {
 	}
 	log.Printf("%s start finished,now is listening......",s.Name)
 	//3 阻塞等待客户端连接，处理客户端连接业务
-	for{
+	for connID:=0;;connID++{
 		conn, err := listener.AcceptTCP()
 		if err != nil {
 			log.Printf("%s connection failed:%s",s.Name,err.Error())
 			continue
 		}
-		//todo: 服务器端完成服务操作
-		//模拟一个512字节的回写功能,即将发送来的功能回送回去
-		go func() {
-			for{
-				buf:=make([]byte,512)
-				read, err := conn.Read(buf)
-				if err != nil {
-					log.Printf("%s read error:%s",s.Name,err.Error())
-					continue
-				}
-				if _,err:=conn.Write(buf[:read]);err!=nil{
-					log.Printf("%s write error:%s",s.Name,err.Error())
-					continue
-				}
-			}
-		}()
-
+		log.Printf("server connection established with %s",conn.RemoteAddr().String())
+		//完成connection的注册，此时将方法传入此
+		c:=NewConnection(conn, uint32(connID),CallBackFunc)
+		go c.Start()
 	}
 	}()
 }
@@ -81,4 +68,14 @@ func NewServer(name string) Zinterface.ServerInterface {
 		Port:      8080,
 	}
 	return s
+}
+
+//模拟一个512字节的回写功能,即将发送来的功能回送回去
+func CallBackFunc(conn *net.TCPConn,buf []byte,cnt int)error{
+	log.SetPrefix("[HandleApi:CallBackFunc]")
+	log.Printf("HandleApi start")
+	if _,err:=conn.Write(buf[:cnt]);err!=nil{
+		return err
+	}
+	return nil
 }

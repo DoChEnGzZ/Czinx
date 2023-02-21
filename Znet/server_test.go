@@ -17,8 +17,9 @@ func ClientTest() {
 		log.Printf("connect error:%s",err.Error())
 		return
 	}
+	log.Printf("client connection establishded with %s",conn.RemoteAddr().String())
 	for i:=0;i<10;i++{
-		_, err := conn.Write([]byte("hello world!"))
+		_, err := conn.Write([]byte("hello world!v0.2"))
 		if err != nil {
 			log.Printf("write error:%s",err.Error())
 			continue
@@ -30,7 +31,7 @@ func ClientTest() {
 			return
 		}
 
-		log.Printf(" server call back : %s, cnt = %d\n", buf[:cnt],  cnt)
+		log.Printf(" server call back : %s, cnt = %d\n", buf[:cnt ],  cnt)
 
 		time.Sleep(1*time.Second)
 	}
