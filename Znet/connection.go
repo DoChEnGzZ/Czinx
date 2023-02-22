@@ -10,17 +10,18 @@ type Connection struct {
 	Conn *net.TCPConn
 	ConnID uint32
 	IsClosed bool
-	HandleApi Zinterface.HandleFunc
+	//HandleApi Zinterface.HandleFunc
+	Router Zinterface.RouterInterface
 	//告知当前连接以及停止
 	StopChan chan bool
 }
 
-func NewConnection(conn *net.TCPConn,coonId uint32,handleFunc Zinterface.HandleFunc)*Connection{
+func NewConnection(conn *net.TCPConn,coonId uint32,router Zinterface.RouterInterface)*Connection{
 	return &Connection{
 		Conn:      conn,
 		ConnID:    coonId,
 		IsClosed:  false,
-		HandleApi: handleFunc,
+		Router: router,
 		StopChan:  make(chan bool,1),
 	}
 }
@@ -39,16 +40,30 @@ func (c *Connection) StartReader(){
 			continue
 		}
 		//完成读之后让APi处理
-		if err:=c.HandleApi(c.Conn,buf,cnt);err!=nil{
-			log.Printf("connID=%d, handle is error", c.ConnID)
-			c.StopChan<-true
-			break
+		//if err:=c.HandleApi(c.Conn,buf,cnt);err!=nil{
+		//	log.Printf("connID=%d, handle is error", c.ConnID)
+		//	c.StopChan<-true
+		//	break
+		//}
+		req:=&Request{
+			conn: c,
+			data: buf[:cnt],
 		}
+		//理由路由绑定的handler执行
+		go func(requestInterface Zinterface.RequestInterface) {
+			c.Router.PreHandle(req)
+			c.Router.Handle(req)
+			c.Router.PostHandle(req)
+		}(req)
 	}
 }
 
 func (c *Connection) Start()  {
 	log.SetPrefix("[Start]")
+	if c.IsClosed{
+		log.Printf("%d connection is closed",c.ConnID)
+		return
+	}
 	c.StartReader()
 	for{
 		select {

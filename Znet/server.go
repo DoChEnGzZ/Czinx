@@ -16,10 +16,12 @@ type Server struct {
 	ipAddress string
 	//端口号
 	Port int
+	//路由
+	Router Zinterface.RouterInterface
 }
 
 func (s *Server) Start()  {
-	log.SetPrefix("[start]")
+	log.SetPrefix("[server start]")
 	log.Printf("%s is starting on %s:%d",s.Name,s.ipAddress,s.Port)
 	go func() {
 	//1 获取本服务器的ip地址
@@ -44,14 +46,14 @@ func (s *Server) Start()  {
 		}
 		log.Printf("server connection established with %s",conn.RemoteAddr().String())
 		//完成connection的注册，此时将方法传入此
-		c:=NewConnection(conn, uint32(connID),CallBackFunc)
+		c:=NewConnection(conn, uint32(connID),s.Router)
 		go c.Start()
 	}
 	}()
 }
 
 func (s *Server) Stop()  {
-
+	log.Println("[server stop]")
 }
 
 func (s *Server) Serve()  {
@@ -60,22 +62,28 @@ func (s *Server) Serve()  {
 	}
 }
 
+func (s *Server) AddRouter(routerInterface Zinterface.RouterInterface)  {
+	log.Println("Add router")
+	s.Router=routerInterface
+}
+
 func NewServer(name string) Zinterface.ServerInterface {
 	s:=&Server{
 		Name:      name,
 		ipVersion: "tcp4",
 		ipAddress: "0.0.0.0",
 		Port:      8080,
+		Router: nil,
 	}
 	return s
 }
 
 //模拟一个512字节的回写功能,即将发送来的功能回送回去
-func CallBackFunc(conn *net.TCPConn,buf []byte,cnt int)error{
-	log.SetPrefix("[HandleApi:CallBackFunc]")
-	log.Printf("HandleApi start")
-	if _,err:=conn.Write(buf[:cnt]);err!=nil{
-		return err
-	}
-	return nil
-}
+//func CallBackFunc(conn *net.TCPConn,buf []byte,cnt int)error{
+//	log.SetPrefix("[HandleApi:CallBackFunc]")
+//	log.Printf("HandleApi start")
+//	if _,err:=conn.Write(buf[:cnt]);err!=nil{
+//		return err
+//	}
+//	return nil
+//}
