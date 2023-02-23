@@ -2,7 +2,7 @@ package Zinterface
 
 import "net"
 
-type ConnectionInterface interface {
+type ConnectionI interface {
 	//启动连接
 	Start()
 	//停止连接
@@ -14,7 +14,7 @@ type ConnectionInterface interface {
 	//获取远程客户端的地址
 	GetRemoteAddr()net.Addr
 	//发送数据
-	Send(data []byte)error
+	Send(messageId uint32,data []byte)error
 }
 
 //处理连接业务的方法

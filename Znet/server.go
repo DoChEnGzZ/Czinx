@@ -2,6 +2,7 @@ package Znet
 
 import (
 	"Czinx/Zinterface"
+	"Czinx/utils"
 	"fmt"
 	"log"
 	"net"
@@ -17,12 +18,14 @@ type Server struct {
 	//端口号
 	Port int
 	//路由
-	Router Zinterface.RouterInterface
+	Router Zinterface.RouterI
 }
 
 func (s *Server) Start()  {
 	log.SetPrefix("[server start]")
-	log.Printf("%s is starting on %s:%d",s.Name,s.ipAddress,s.Port)
+	//log.Printf("%s is starting on %s:%d",s.Name,s.ipAddress,s.Port)
+	log.Printf("server %s is starting on %s:%d,maxbufsize is %d maxconnection nums is %d",
+		utils.GlobalConfig.Name,utils.GlobalConfig.Host,utils.GlobalConfig.Port,utils.GlobalConfig.MaxPackageSize,utils.GlobalConfig.MaxConn)
 	go func() {
 	//1 获取本服务器的ip地址
 	addr, err := net.ResolveTCPAddr(s.ipVersion,fmt.Sprintf("%s:%d",s.ipAddress,s.Port))
@@ -62,28 +65,18 @@ func (s *Server) Serve()  {
 	}
 }
 
-func (s *Server) AddRouter(routerInterface Zinterface.RouterInterface)  {
+func (s *Server) AddRouter(routerInterface Zinterface.RouterI)  {
 	log.Println("Add router")
 	s.Router=routerInterface
 }
 
-func NewServer(name string) Zinterface.ServerInterface {
+func NewServer(name string) Zinterface.ServerI {
 	s:=&Server{
-		Name:      name,
+		Name:      utils.GlobalConfig.Name,
 		ipVersion: "tcp4",
-		ipAddress: "0.0.0.0",
-		Port:      8080,
+		ipAddress: utils.GlobalConfig.Host,
+		Port:      utils.GlobalConfig.Port,
 		Router: nil,
 	}
 	return s
 }
-
-//模拟一个512字节的回写功能,即将发送来的功能回送回去
-//func CallBackFunc(conn *net.TCPConn,buf []byte,cnt int)error{
-//	log.SetPrefix("[HandleApi:CallBackFunc]")
-//	log.Printf("HandleApi start")
-//	if _,err:=conn.Write(buf[:cnt]);err!=nil{
-//		return err
-//	}
-//	return nil
-//}

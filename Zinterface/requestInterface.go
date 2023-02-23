@@ -1,8 +1,8 @@
 package Zinterface
 
-type RequestInterface interface {
+type RequestI interface {
 	//获取连接
-	GetConnection()ConnectionInterface
+	GetConnection() ConnectionI
 	//获取数据
 	GetData()[]byte
 

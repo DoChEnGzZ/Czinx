@@ -1,9 +1,9 @@
 package Zinterface
 
-type ServerInterface interface {
+type ServerI interface {
 	Start()
 	Stop()
 	Serve()
-	AddRouter(routerInterface2 RouterInterface)
+	AddRouter(routerInterface2 RouterI)
 }
 

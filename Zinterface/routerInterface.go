@@ -1,8 +1,8 @@
 package Zinterface
 
-type RouterInterface interface {
+type RouterI interface {
 	//处理conn业务前中后的方法
-	PreHandle(requestInterface RequestInterface)
-	Handle(requestInterface RequestInterface)
-	PostHandle(requestInterface RequestInterface)
+	PreHandle(requestInterface RequestI)
+	Handle(requestInterface RequestI)
+	PostHandle(requestInterface RequestI)
 }
