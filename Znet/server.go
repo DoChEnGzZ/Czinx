@@ -17,8 +17,8 @@ type Server struct {
 	ipAddress string
 	//端口号
 	Port int
-	//路由
-	Router Zinterface.RouterI
+	//路由与消息
+	Handler *MsgHandler
 }
 
 func (s *Server) Start()  {
@@ -49,7 +49,7 @@ func (s *Server) Start()  {
 		}
 		log.Printf("server connection established with %s",conn.RemoteAddr().String())
 		//完成connection的注册，此时将方法传入此
-		c:=NewConnection(conn, uint32(connID),s.Router)
+		c:=NewConnection(conn, uint32(connID),s.Handler)
 		go c.Start()
 	}
 	}()
@@ -65,9 +65,13 @@ func (s *Server) Serve()  {
 	}
 }
 
-func (s *Server) AddRouter(routerInterface Zinterface.RouterI)  {
+func (s *Server) AddRouter(msgId uint32,router Zinterface.RouterI)  {
 	log.Println("Add router")
-	s.Router=routerInterface
+	err := s.Handler.AddRouter(msgId, router)
+	if err != nil {
+		fmt.Println("add router error:",err)
+		return
+	}
 }
 
 func NewServer(name string) Zinterface.ServerI {
@@ -76,7 +80,7 @@ func NewServer(name string) Zinterface.ServerI {
 		ipVersion: "tcp4",
 		ipAddress: utils.GlobalConfig.Host,
 		Port:      utils.GlobalConfig.Port,
-		Router: nil,
+		Handler: NewMsgHandler(),
 	}
 	return s
 }

@@ -5,5 +5,6 @@ type RequestI interface {
 	GetConnection() ConnectionI
 	//获取数据
 	GetData()[]byte
+	GetMessageID()uint32
 
 }

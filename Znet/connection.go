@@ -4,6 +4,7 @@ import (
 	"Czinx/Zinterface"
 	_ "Czinx/utils"
 	"encoding/binary"
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -14,17 +15,17 @@ type Connection struct {
 	ConnID uint32
 	IsClosed bool
 	//HandleApi Zinterface.HandleFunc
-	Router Zinterface.RouterI
+	Handler Zinterface.MsgHandleI
 	//告知当前连接以及停止
 	StopChan chan bool
 }
 
-func NewConnection(conn *net.TCPConn,coonId uint32,router Zinterface.RouterI)*Connection{
+func NewConnection(conn *net.TCPConn,coonId uint32,handler Zinterface.MsgHandleI)*Connection{
 	return &Connection{
 		Conn:      conn,
 		ConnID:    coonId,
 		IsClosed:  false,
-		Router: router,
+		Handler: handler,
 		StopChan:  make(chan bool,1),
 	}
 }
@@ -71,9 +72,11 @@ func (c *Connection) StartReader(){
 		}
 		//理由路由绑定的handler执行
 		go func(requestInterface Zinterface.RequestI) {
-			c.Router.PreHandle(req)
-			c.Router.Handle(req)
-			c.Router.PostHandle(req)
+			err := c.Handler.Handle(req)
+			if err != nil {
+				fmt.Println("handle error:",err)
+				return
+			}
 		}(req)
 	}
 }

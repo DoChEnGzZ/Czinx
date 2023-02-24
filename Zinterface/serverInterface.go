@@ -4,6 +4,6 @@ type ServerI interface {
 	Start()
 	Stop()
 	Serve()
-	AddRouter(routerInterface2 RouterI)
+	AddRouter(msgId uint32,routerInterface2 RouterI)
 }
 

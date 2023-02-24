@@ -12,9 +12,10 @@ import (
 
 func main() {
 	s:=Znet.NewServer("test")
-	s.AddRouter(Znet.BaseRouter{})
+	s.AddRouter(0,Znet.BaseRouter{})
 	go ClientTest()
 	s.Serve()
+
 }
 
 func ClientTest() {
