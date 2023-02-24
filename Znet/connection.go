@@ -18,6 +18,7 @@ type Connection struct {
 	Handler Zinterface.MsgHandleI
 	//告知当前连接以及停止
 	StopChan chan bool
+	WriteChan chan []byte
 }
 
 func NewConnection(conn *net.TCPConn,coonId uint32,handler Zinterface.MsgHandleI)*Connection{
@@ -27,6 +28,7 @@ func NewConnection(conn *net.TCPConn,coonId uint32,handler Zinterface.MsgHandleI
 		IsClosed:  false,
 		Handler: handler,
 		StopChan:  make(chan bool,1),
+		WriteChan: make(chan []byte),
 	}
 }
 
@@ -81,13 +83,33 @@ func (c *Connection) StartReader(){
 	}
 }
 
+func (c *Connection) StartWriter(){
+	log.Println("[Writer Goroutine] is running")
+	defer log.Println("[Writer Goroutine] is closing")
+	for{
+		select {
+		//从WriteChan中读到数据并发送出去
+		case data:=<-c.WriteChan:
+			_, err := c.Conn.Write(data)
+			if err != nil {
+				log.Printf("[Writer Goroutine] write data error:%s"+err.Error())
+				return
+			}
+		//从stopChan中收到信号，关闭WriteRoutine
+		case <-c.StopChan:
+			return
+		}
+	}
+}
+
 func (c *Connection) Start()  {
 	log.SetPrefix("[Server Start]")
 	if c.IsClosed{
 		log.Printf("%d connection is closed",c.ConnID)
 		return
 	}
-	c.StartReader()
+	go c.StartReader()
+	go c.StartWriter()
 	for{
 		select {
 		case <-c.StopChan:
@@ -119,19 +141,16 @@ func (c *Connection) GetTcpConnection()*net.TCPConn  {
 
 func (c *Connection) GetRemoteAddr()net.Addr  {
 	return c.Conn.RemoteAddr()
-
 }
 
 func (c *Connection) Send(messageId uint32,data []byte)error  {
 	msg:=NewMessage(data,messageId)
 	bytes, err := DefaultDataPack.Pack(msg)
 	if err != nil {
+		log.Printf("Message Pack error:%s",err.Error())
 		return err
 	}
-	if _, err := c.Conn.Write(bytes);err!=nil{
-		c.StopChan<-true
-		return err
-	}
+	c.WriteChan<-bytes
 	return nil
 }
 
