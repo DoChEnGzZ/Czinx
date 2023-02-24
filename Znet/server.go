@@ -27,6 +27,8 @@ func (s *Server) Start()  {
 	log.Printf("server %s is starting on %s:%d,maxbufsize is %d maxconnection nums is %d",
 		utils.GlobalConfig.Name,utils.GlobalConfig.Host,utils.GlobalConfig.Port,utils.GlobalConfig.MaxPackageSize,utils.GlobalConfig.MaxConn)
 	go func() {
+		//start pool
+		s.Handler.StartWorkerPool()
 	//1 获取本服务器的ip地址
 	addr, err := net.ResolveTCPAddr(s.ipVersion,fmt.Sprintf("%s:%d",s.ipAddress,s.Port))
 	if err != nil {

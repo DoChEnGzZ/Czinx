@@ -73,7 +73,6 @@ func ClientTest() {
 			continue
 		}
 		log.Printf(" server call back : %s\n", string(msg.GetData()))
-
 		time.Sleep(1*time.Second)
 	}
 }

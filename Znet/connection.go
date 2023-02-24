@@ -2,9 +2,9 @@ package Znet
 
 import (
 	"Czinx/Zinterface"
+	"Czinx/utils"
 	_ "Czinx/utils"
 	"encoding/binary"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -72,14 +72,9 @@ func (c *Connection) StartReader(){
 			conn: c,
 			message: msg,
 		}
-		//理由路由绑定的handler执行
-		go func(requestInterface Zinterface.RequestI) {
-			err := c.Handler.Handle(req)
-			if err != nil {
-				fmt.Println("handle error:",err)
-				return
-			}
-		}(req)
+		if utils.GlobalConfig.MaxWorkPoolSize>0{
+			c.Handler.SendMessage(req)
+		}
 	}
 }
 

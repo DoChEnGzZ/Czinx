@@ -12,13 +12,17 @@ import (
 // @Description: zinx的全局配置
 //
 type Config struct {
+	/*Server*/
 	Server Zinterface.ServerI
 	Host string
 	Port int
 	Name string
-	Version string
-	MaxPackageSize int
-	MaxConn int
+	/*CZinx*/
+	Version string //zinx版本
+	MaxPackageSize int //最大包长
+	MaxConn int //最大连接数
+	MaxWorkPoolSize int //最大工作池数
+	MaxPoolTaskSize int //每个池的最大任务数
 }
 
 var GlobalConfig *Config
@@ -47,6 +51,8 @@ func init(){
 		Version:        "v0.4",
 		MaxPackageSize: 512,
 		MaxConn:        1024,
+		MaxWorkPoolSize: 10,
+		MaxPoolTaskSize: 512,
 	}
 	GlobalConfig.loadFromJson()
 }
