@@ -15,6 +15,7 @@ type ConnectionI interface {
 	GetRemoteAddr()net.Addr
 	//发送数据
 	Send(messageId uint32,data []byte)error
+	SendBuff(messageId uint32,data []byte)error
 }
 
 //处理连接业务的方法

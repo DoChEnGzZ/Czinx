@@ -5,12 +5,14 @@ import (
 	"Czinx/utils"
 	_ "Czinx/utils"
 	"encoding/binary"
+	"errors"
 	"io"
 	"log"
 	"net"
 )
 
 type Connection struct {
+	TcpServer Zinterface.ServerI
 	Conn *net.TCPConn
 	ConnID uint32
 	IsClosed bool
@@ -19,17 +21,23 @@ type Connection struct {
 	//告知当前连接以及停止
 	StopChan chan bool
 	WriteChan chan []byte
+	//有缓发送区
+	WriteBufChan chan []byte
 }
 
-func NewConnection(conn *net.TCPConn,coonId uint32,handler Zinterface.MsgHandleI)*Connection{
-	return &Connection{
+func NewConnection(server Zinterface.ServerI,conn *net.TCPConn,coonId uint32,handler Zinterface.MsgHandleI)*Connection{
+	c:= &Connection{
+		TcpServer: server,
 		Conn:      conn,
 		ConnID:    coonId,
 		IsClosed:  false,
 		Handler: handler,
 		StopChan:  make(chan bool,1),
 		WriteChan: make(chan []byte),
+		WriteBufChan: make(chan []byte,utils.GlobalConfig.MaxPackageSize),
 	}
+	c.TcpServer.GetManager().Add(c)
+	return c
 }
 
 //启动读写业务
@@ -90,6 +98,17 @@ func (c *Connection) StartWriter(){
 				log.Printf("[Writer Goroutine] write data error:%s"+err.Error())
 				return
 			}
+		case data,ok:=<-c.WriteBufChan:
+			if !ok{
+				log.Printf("[Writer Goroutine] write data error:WriteBufChan Closed")
+				break
+			}else {
+				_,err:=c.Conn.Write(data)
+				if err != nil {
+					log.Printf("[Writer Goroutine] write data error:%s"+err.Error())
+					return
+			}
+			}
 		//从stopChan中收到信号，关闭WriteRoutine
 		case <-c.StopChan:
 			return
@@ -103,8 +122,10 @@ func (c *Connection) Start()  {
 		log.Printf("%d connection is closed",c.ConnID)
 		return
 	}
+	c.TcpServer.CallBeforeConnect(c)
 	go c.StartReader()
 	go c.StartWriter()
+	c.TcpServer.CallAfterConnect(c)
 	for{
 		select {
 		case <-c.StopChan:
@@ -117,17 +138,25 @@ func (c *Connection) Start()  {
 func (c *Connection) Stop()  {
 	log.SetPrefix("[Stop]")
 	log.Printf("stop ConnID=%d",c.ConnID)
+	c.TcpServer.CallBeforeStop(c)
 	if c.IsClosed{
 		return
 	}
 	c.IsClosed=true
 	err := c.Conn.Close()
+	c.Handler.Close()
 	if err != nil {
 		log.Printf("Stop error=%s",err.Error())
 		return
 	}
 	c.StopChan<-true
+	err = c.TcpServer.GetManager().Remove(c.ConnID)
+	if err != nil {
+		log.Println("[Connection]stop error",err)
+	}
 	close(c.StopChan)
+	close(c.WriteBufChan)
+	close(c.WriteChan)
 }
 
 func (c *Connection) GetTcpConnection()*net.TCPConn  {
@@ -139,6 +168,9 @@ func (c *Connection) GetRemoteAddr()net.Addr  {
 }
 
 func (c *Connection) Send(messageId uint32,data []byte)error  {
+	if c.IsClosed{
+		return errors.New("[Connection]Send error,conn already closed")
+	}
 	msg:=NewMessage(data,messageId)
 	bytes, err := DefaultDataPack.Pack(msg)
 	if err != nil {
@@ -146,6 +178,20 @@ func (c *Connection) Send(messageId uint32,data []byte)error  {
 		return err
 	}
 	c.WriteChan<-bytes
+	return nil
+}
+
+func (c *Connection) SendBuff(messageId uint32,data []byte)error{
+	if c.IsClosed{
+		return errors.New("[Connection]Send error,conn already closed")
+	}
+	msg:=NewMessage(data,messageId)
+	bytes,err:= DefaultDataPack.Pack(msg)
+	if err != nil {
+		log.Printf("Message Pack error:%s",err.Error())
+		return err
+	}
+	c.WriteBufChan<-bytes
 	return nil
 }
 

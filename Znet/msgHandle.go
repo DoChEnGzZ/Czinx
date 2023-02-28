@@ -10,7 +10,7 @@ import (
 
 //根据收到的不同的消息id调用不同的Router进行处理
 type MsgHandler struct {
-	MsgRouterMap map[uint32]Zinterface.RouterI
+	MsgRouterMap map[uint32]Zinterface.RouterI //每个消息id对应一个Router
 	MaxPoolSize int
 	TaskQueue []chan Zinterface.RequestI //[workerId]chan,通过向chan中放request找到对应的worker
 }
@@ -72,4 +72,8 @@ func (h *MsgHandler) Handle(r Zinterface.RequestI)error  {
 	handle.Handle(r)
 	handle.PostHandle(r)
 	return nil
+}
+
+func (h *MsgHandler) Close()  {
+	//todo:close all handler
 }

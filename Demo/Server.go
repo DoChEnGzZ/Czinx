@@ -12,13 +12,15 @@ import (
 
 func main() {
 	s:=Znet.NewServer("test")
-	s.AddRouter(0,Znet.BaseRouter{})
-	go ClientTest()
+	s.AddRouter(0,Znet.NewBaseRouter("client 0 test message"))
+	s.AddRouter(1,Znet.NewBaseRouter("高打低打傻逼啊彬子"))
+	go ClientTest(0)
+	go ClientTest(1)
 	s.Serve()
 
 }
 
-func ClientTest() {
+func ClientTest(msgID uint32) {
 	log.SetPrefix("[ClientTest]")
 	log.Println("test start after 3s")
 	time.Sleep(3*time.Second)
@@ -28,7 +30,7 @@ func ClientTest() {
 		return
 	}
 	log.Printf("client connection establishded with %s",conn.RemoteAddr().String())
-	for i:=0;i<10;i++{
+	for i:=1;i<10;i++{
 		//_, err := conn.Write([]byte("hello world!v0.2"))
 		//if err != nil {
 		//	log.Printf("write error:%s",err.Error())
@@ -41,7 +43,7 @@ func ClientTest() {
 		//	return
 		//}
 		//向服务器发数据
-		bytes, err := Znet.DefaultDataPack.Pack(Znet.NewMessage([]byte("hello world ZinxV0.5 with message"),0))
+		bytes, err := Znet.DefaultDataPack.Pack(Znet.NewMessage([]byte("hello world ZinxV0.5 with message"), msgID))
 		if err != nil {
 			log.Println("Pack error:",err)
 			return

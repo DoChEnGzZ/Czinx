@@ -23,6 +23,7 @@ type Config struct {
 	MaxConn int //最大连接数
 	MaxWorkPoolSize int //最大工作池数
 	MaxPoolTaskSize int //每个池的最大任务数
+	MaxBuffChanSize int //服务器最大的发送缓冲区
 }
 
 var GlobalConfig *Config
@@ -53,6 +54,7 @@ func init(){
 		MaxConn:        1024,
 		MaxWorkPoolSize: 10,
 		MaxPoolTaskSize: 512,
+		MaxBuffChanSize: 1024,
 	}
 	GlobalConfig.loadFromJson()
 }
