@@ -16,6 +16,12 @@ type ConnectionI interface {
 	//发送数据
 	Send(messageId uint32,data []byte)error
 	SendBuff(messageId uint32,data []byte)error
+	//设置链接属性
+	SetProperty(key string, value interface{})
+	//获取链接属性
+	GetProperty(key string)(interface{}, error)
+	//移除链接属性
+	RemoveProperty(key string)
 }
 
 //处理连接业务的方法

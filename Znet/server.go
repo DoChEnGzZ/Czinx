@@ -3,6 +3,7 @@ package Znet
 import (
 	"Czinx/Zinterface"
 	"Czinx/utils"
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -23,16 +24,16 @@ type Server struct {
 	beforeStart Zinterface.ConnectionFunc
 	afterStart Zinterface.ConnectionFunc
 	beforeStop Zinterface.ConnectionFunc
+	cancel     context.CancelFunc
 }
 
 func (s *Server) Start()  {
-	log.SetPrefix("[server start]")
 	//log.Printf("%s is starting on %s:%d",s.Name,s.ipAddress,s.Port)
-	log.Printf("server %s is starting on %s:%d,maxbufsize is %d maxconnection nums is %d",
-		utils.GlobalConfig.Name,utils.GlobalConfig.Host,utils.GlobalConfig.Port,utils.GlobalConfig.MaxPackageSize,utils.GlobalConfig.MaxConn)
+	var ctx context.Context
+	ctx,s.cancel =context.WithCancel(context.Background())
 	go func() {
 		//start pool
-		s.Handler.StartWorkerPool()
+		s.Handler.StartWorkerPool(ctx)
 	//1 获取本服务器的ip地址
 	addr, err := net.ResolveTCPAddr(s.ipVersion,fmt.Sprintf("%s:%d",s.ipAddress,s.Port))
 	if err != nil {
@@ -70,6 +71,7 @@ func (s *Server) Start()  {
 
 func (s *Server) Stop()  {
 	err := s.manager.Clear()
+	s.cancel()
 	if err != nil {
 		log.Println("[Server stop]error:",err)
 	}
