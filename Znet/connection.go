@@ -136,6 +136,7 @@ func (c *Connection) Start()  {
 		select {
 		case <-c.StopChan:
 			log.Printf("[Connection]recieve stop signal from chan")
+			c.Stop()
 			return
 		}
 	}
