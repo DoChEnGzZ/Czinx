@@ -15,7 +15,7 @@ import (
 func main() {
 	s:=Znet.NewServer("test")
 	s.AddRouter(0,Znet.NewBaseRouter("client 0 test message"))
-	s.AddRouter(1,Znet.NewBaseRouter("高打低打傻逼啊彬子"))
+	s.AddRouter(1,Znet.NewBaseRouter("client 0 test message"))
 	s.SetBeforeConnect(func(i Zinterface.ConnectionI) {
 		log.Printf("server %s is starting on %s:%d,maxbufsize is %d maxconnection nums is %d," +
 			"connection id is %d",
@@ -24,11 +24,22 @@ func main() {
 			utils.GlobalConfig.MaxConn,i.GetConnID())
 		i.SetProperty("name","ZinxV1.0")
 	})
-	go ClientTest(0)
-	go ClientTest(1)
-	s.Serve()
-
+	go s.Serve()
+	c:=Znet.NewClient("127.0.0.1",8080)
+	c.SetAfterConnect(func(i Zinterface.ConnectionI) {
+		err := i.Send(0, []byte("http"))
+		if err != nil {
+			panic(err)
+		}
+	})
+	c.Start()
+	c.SendMessage(1,"https")
+	//c.SendMessage(2,"https")
+	select {
+	}
 }
+
+
 
 func ClientTest(msgID uint32) {
 	log.Println("[Client]test start after 3s")

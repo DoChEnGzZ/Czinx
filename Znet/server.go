@@ -99,7 +99,7 @@ func NewServer(name string) Zinterface.ServerI {
 		ipVersion: "tcp4",
 		ipAddress: utils.GlobalConfig.Host,
 		Port:      utils.GlobalConfig.Port,
-		Handler: NewMsgHandler(),
+		Handler: NewMsgHandlerByConfig(),
 		manager: NewManager(),
 	}
 	return s

@@ -18,7 +18,8 @@ func (r BaseRouter) PreHandle(request Zinterface.RequestI)  {
 
 }
 func (r BaseRouter) Handle(request Zinterface.RequestI)  {
-	err := request.GetConnection().Send(1, []byte(r.text))
+	log.Println("[Server]receive"+string(request.GetData()))
+	err := request.GetConnection().Send(3, []byte(r.text))
 	if err != nil {
 		log.Println("[Basic Router]handle error:",err)
 		return

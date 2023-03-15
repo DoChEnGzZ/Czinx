@@ -16,24 +16,35 @@ type MsgHandler struct {
 	MsgRouterMap map[uint32]Zinterface.RouterI //每个消息id对应一个Router
 	MaxPoolSize int
 	TaskQueue []chan Zinterface.RequestI //[workerId]chan,通过向chan中放request找到对应的worker
-	bucket *rate.Limiter //令牌桶
+	buckets []*rate.Limiter //令牌桶
 }
 
-func NewMsgHandler()*MsgHandler{
-	return &MsgHandler{
+func NewMsgHandler(maxPoolSize,maxTaskSize int)*MsgHandler{
+	h:=&MsgHandler{
+		MsgRouterMap: make(map[uint32]Zinterface.RouterI),
+		MaxPoolSize: maxPoolSize,
+		TaskQueue:    make([]chan Zinterface.RequestI,maxPoolSize),
+		buckets: make([]*rate.Limiter,maxPoolSize),
+	}
+	return h
+}
+
+func NewMsgHandlerByConfig()*MsgHandler{
+	h:=&MsgHandler{
 		MsgRouterMap: make(map[uint32]Zinterface.RouterI),
 		MaxPoolSize: utils.GlobalConfig.MaxWorkPoolSize,
 		TaskQueue:    make([]chan Zinterface.RequestI,utils.GlobalConfig.MaxWorkPoolSize),
-		bucket: rate.NewLimiter(rate.Every(100*time.Millisecond),utils.GlobalConfig.MaxWorkPoolSize),
+		buckets:  make([]*rate.Limiter,utils.GlobalConfig.MaxWorkPoolSize),
 	}
+	return h
 }
 
-func (h *MsgHandler) StartWorker(ctx context.Context,workerId int,taskChan chan Zinterface.RequestI)  {
+func (h *MsgHandler) StartWorker(ctx context.Context,workerId int,taskChan chan Zinterface.RequestI,bucket *rate.Limiter)  {
 	log.Printf("WorkerPool:%d is startting",workerId)
 	for{
 		select {
 		case r:=<-taskChan:
-			if err:=h.bucket.Wait(ctx);err!=nil{
+			if err:=bucket.Wait(ctx);err!=nil{
 				log.Printf("WorkerPool:%d handle error:%s",workerId,err)
 				continue
 			}
@@ -54,8 +65,9 @@ func (h *MsgHandler) StartWorkerPool(ctx context.Context){
 			log.Printf("workerpool %d already exited",i)
 			return
 		}
-		h.TaskQueue[i]=make(chan Zinterface.RequestI,utils.GlobalConfig.MaxPoolTaskSize)
-		go h.StartWorker(ctx,i,h.TaskQueue[i])
+		h.TaskQueue[i]=make(chan Zinterface.RequestI,h.MaxPoolSize)
+		h.buckets[i]=rate.NewLimiter(rate.Every(100*time.Millisecond),h.MaxPoolSize)
+		go h.StartWorker(ctx,i,h.TaskQueue[i],h.buckets[i])
 	}
 }
 func (h *MsgHandler) SendMessage(r Zinterface.RequestI){

@@ -15,6 +15,7 @@ import (
 
 type Connection struct {
 	TcpServer Zinterface.ServerI
+	Client Zinterface.ClientI
 	Conn *net.TCPConn
 	ConnID uint32
 	IsClosed bool
@@ -43,7 +44,25 @@ func NewConnection(server Zinterface.ServerI,conn *net.TCPConn,coonId uint32,han
 		WriteChan: make(chan []byte),
 		WriteBufChan: make(chan []byte,utils.GlobalConfig.MaxPackageSize),
 	}
-	c.TcpServer.GetManager().Add(c)
+	if c.TcpServer.GetManager()!=nil{
+		c.TcpServer.GetManager().Add(c)
+	}
+	return c
+}
+
+func NewClientConnection(client Zinterface.ClientI,conn *net.TCPConn,coonId uint32,handler Zinterface.MsgHandleI)*Connection{
+	c:= &Connection{
+		Client: client,
+		Conn:      conn,
+		ConnID:    coonId,
+		IsClosed:  false,
+		Handler: handler,
+		Property: make(map[string]interface{}),
+		PropertyMutex: sync.RWMutex{},
+		StopChan:  make(chan bool,1),
+		WriteChan: make(chan []byte),
+		WriteBufChan: make(chan []byte,utils.GlobalConfig.MaxPackageSize),
+	}
 	return c
 }
 
@@ -128,10 +147,14 @@ func (c *Connection) Start()  {
 		log.Printf("[Connection]%d connection is closed",c.ConnID)
 		return
 	}
-	c.TcpServer.CallBeforeConnect(c)
+	if c.TcpServer!=nil{
+		c.TcpServer.CallBeforeConnect(c)
+	}
 	go c.StartReader()
 	go c.StartWriter()
-	c.TcpServer.CallAfterConnect(c)
+	if c.TcpServer!=nil{
+		c.TcpServer.CallAfterConnect(c)
+	}
 	for{
 		select {
 		case <-c.StopChan:
@@ -144,7 +167,9 @@ func (c *Connection) Start()  {
 
 func (c *Connection) Stop()  {
 	log.Printf("[Connection]stop ConnID=%d",c.ConnID)
-	c.TcpServer.CallBeforeStop(c)
+	if c.TcpServer!=nil{
+		c.TcpServer.CallBeforeStop(c)
+	}
 	if c.IsClosed{
 		return
 	}
@@ -156,7 +181,9 @@ func (c *Connection) Stop()  {
 		return
 	}
 	c.StopChan<-true
-	err = c.TcpServer.GetManager().Remove(c.ConnID)
+	if c.TcpServer!=nil{
+		err = c.TcpServer.GetManager().Remove(c.ConnID)
+	}
 	if err != nil {
 		log.Println("[Connection]stop error",err)
 	}
