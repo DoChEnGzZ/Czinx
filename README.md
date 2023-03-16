@@ -18,6 +18,44 @@
 
 特点：轻量级，实现TCP长连接通信，高并发，高度自由的面相接口应用开发
 
+
+
+项目目录结构
+
+```bash
+CZinx
+├── Demo
+│   └── Server.go
+├── README.md
+├── Zinterface
+│   ├── clientInterface.go
+│   ├── connectionInterface.go
+│   ├── datapackInterface.go
+│   ├── managerInterface.go
+│   ├── messageInterface.go
+│   ├── msghandleInterface.go
+│   ├── requestInterface.go
+│   ├── routerInterface.go
+│   └── serverInterface.go
+├── Znet
+│   ├── client.go
+│   ├── connection.go
+│   ├── datapack.go
+│   ├── manager.go
+│   ├── message.go
+│   ├── msgHandle.go
+│   ├── request.go
+│   ├── router.go
+│   ├── server.go
+│   └── server_test.go
+├── config
+│   └── config.json
+└── utils
+    └── config.go
+```
+
+
+
 ### 架构图：
 
 ![](./pics/Czinx.jpg)
