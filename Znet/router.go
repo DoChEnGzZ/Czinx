@@ -1,9 +1,10 @@
 package Znet
 
 import (
-	"Czinx/Zinterface"
+	"github.com/DoChEnGzZ/Czinx/Zinterface"
 	"log"
 )
+
 
 //实现路由时，此为基础中间件
 type BaseRouter struct {

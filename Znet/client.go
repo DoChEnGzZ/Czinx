@@ -1,8 +1,8 @@
 package Znet
 
 import (
-	"Czinx/Zinterface"
 	"fmt"
+	"github.com/DoChEnGzZ/Czinx/Zinterface"
 	"log"
 	"net"
 	"sync"

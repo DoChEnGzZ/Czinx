@@ -1,11 +1,11 @@
 package Znet
 
 import (
-	"Czinx/Zinterface"
-	"Czinx/utils"
 	"context"
 	"errors"
 	"fmt"
+	"github.com/DoChEnGzZ/Czinx/Zinterface"
+	"github.com/DoChEnGzZ/Czinx/utils"
 	"golang.org/x/time/rate"
 	"log"
 	"time"

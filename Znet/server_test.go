@@ -39,7 +39,7 @@ func ClientTest() {
 
 func TestServer(t *testing.T) {
 	s:=NewServer("test")
-	s.AddRouter(BaseRouter{})
+	s.AddRouter(0,BaseRouter{})
 	go ClientTest()
 	s.Serve()
 

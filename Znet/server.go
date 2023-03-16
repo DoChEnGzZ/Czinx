@@ -1,10 +1,10 @@
 package Znet
 
 import (
-	"Czinx/Zinterface"
-	"Czinx/utils"
 	"context"
 	"fmt"
+	"github.com/DoChEnGzZ/Czinx/Zinterface"
+	"github.com/DoChEnGzZ/Czinx/utils"
 	"log"
 	"net"
 )

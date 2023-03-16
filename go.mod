@@ -1,4 +1,4 @@
-module Czinx
+module github.com/DoChEnGzZ/Czinx
 
 go 1.17
 

@@ -1,11 +1,11 @@
 package main
 
 import (
-	"Czinx/Zinterface"
-	"Czinx/Znet"
-	"Czinx/utils"
 	"encoding/binary"
 	_ "fmt"
+	"github.com/DoChEnGzZ/Czinx/Zinterface"
+	"github.com/DoChEnGzZ/Czinx/Znet"
+	"github.com/DoChEnGzZ/Czinx/utils"
 	"io"
 	"log"
 	"net"

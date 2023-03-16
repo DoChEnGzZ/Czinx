@@ -1,6 +1,6 @@
 package Znet
 
-import "Czinx/Zinterface"
+import "github.com/DoChEnGzZ/Czinx/Zinterface"
 
 type Request struct {
 	conn Zinterface.ConnectionI

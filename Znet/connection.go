@@ -1,11 +1,10 @@
 package Znet
 
 import (
-	"Czinx/Zinterface"
-	"Czinx/utils"
-	_ "Czinx/utils"
 	"encoding/binary"
 	"errors"
+	"github.com/DoChEnGzZ/Czinx/Zinterface"
+	"github.com/DoChEnGzZ/Czinx/utils"
 	"io"
 	"log"
 	"net"

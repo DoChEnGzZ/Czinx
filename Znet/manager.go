@@ -1,8 +1,8 @@
 package Znet
 
 import (
-	"Czinx/Zinterface"
 	"errors"
+	"github.com/DoChEnGzZ/Czinx/Zinterface"
 	"log"
 	"strconv"
 	"sync"
