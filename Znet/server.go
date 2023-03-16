@@ -29,6 +29,7 @@ type Server struct {
 
 func (s *Server) Start()  {
 	//log.Printf("%s is starting on %s:%d",s.Name,s.ipAddress,s.Port)
+	log.SetFlags(log.Ldate|log.Ltime|log.Llongfile)
 	var ctx context.Context
 	ctx,s.cancel =context.WithCancel(context.Background())
 	go func() {

@@ -53,7 +53,7 @@ func init(){
 		MaxPackageSize: 512,
 		MaxConn:        1024,
 		MaxWorkPoolSize: 10,
-		MaxPoolTaskSize: 512,
+		MaxPoolTaskSize: 64,
 		MaxBuffChanSize: 1024,
 	}
 	GlobalConfig.loadFromJson()

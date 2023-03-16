@@ -1,7 +1,7 @@
 {
   "Name":"demo server",
   "Host":"0.0.0.0",
-  "TcpPort":8080,
+  "Port":8088,
   "MaxPackageSize": 512,
   "MaxConn":        1024,
   "MaxWorkPoolSize": 10,

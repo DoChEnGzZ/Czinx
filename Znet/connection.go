@@ -68,16 +68,16 @@ func NewClientConnection(client Zinterface.ClientI,conn *net.TCPConn,coonId uint
 //启动读写业务
 func (c *Connection) StartReader(){
 	log.Printf("[Connection]Reader GoRoutine is running...")
-	defer c.Stop()
-	defer log.Printf("[Connection]ConnID=%d RemoteAddr=%s stop reading",c.GetConnID(),c.GetRemoteAddr())
+	//defer c.Stop()
+	//defer log.Printf("[Connection]ConnID=%d RemoteAddr=%s stop reading",c.GetConnID(),c.GetRemoteAddr())
 
 	for{
 		//获取包头，根据包头设计缓冲区
 		head:=make([]byte,DefaultDataPack.GetHeadLen())
 		_, err := io.ReadFull(c.GetTcpConnection(),head)
 		if err != nil {
-			log.Printf("[Connection]Read error=%s",err.Error())
-			c.StopChan<-true
+			//log.Printf("[Connection]Read error=%s,no msg since connected",err.Error())
+			//c.StopChan<-true
 			continue
 		}
 		//log.Printf("%d",head[4])
@@ -88,7 +88,7 @@ func (c *Connection) StartReader(){
 		_, err = io.ReadFull(c.GetTcpConnection(), data)
 		if err != nil {
 			log.Printf("[Connection]Read error=%s",err.Error())
-			c.StopChan<-true
+			//c.StopChan<-true
 			continue
 		}
 		//将包头和数据合并
@@ -180,7 +180,7 @@ func (c *Connection) Stop()  {
 		return
 	}
 	c.StopChan<-true
-	if c.TcpServer!=nil{
+	if c.TcpServer.GetManager()!=nil{
 		err = c.TcpServer.GetManager().Remove(c.ConnID)
 	}
 	if err != nil {
@@ -205,6 +205,7 @@ func (c *Connection) Send(messageId uint32,data []byte)error  {
 	}
 	msg:=NewMessage(data,messageId)
 	bytes, err := DefaultDataPack.Pack(msg)
+	log.Println(string(bytes))
 	if err != nil {
 		log.Printf("[Connection]Message Pack error:%s",err.Error())
 		return err

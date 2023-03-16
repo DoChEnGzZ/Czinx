@@ -27,6 +27,7 @@ type Client struct {
 }
 
 func NewClient(ip string,port int)*Client  {
+	log.SetFlags(log.Ltime|log.Llongfile)
 	return &Client{
 		ip:         ip,
 		port:       port,

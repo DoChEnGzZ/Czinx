@@ -13,6 +13,7 @@
 
 1. websocket协议支持
 2. 加入logrus、viper等框架集成使用
+3. 完成消息内容部分ProtoBuf的封装
 
 ### 特点
 
@@ -98,6 +99,29 @@ BaseRouter是个基础业务处理模块，会将从客户端收到的消息打�
 	s.AddRouter(1,Znet.NewBaseRouter("client 1 test message"))
 ```
 
+可以自定义处理路由，像Gin一样。
+
+```go
+	var msgId uint32
+	server.AddRouter(msgId, HandleRouter{})
+	type HandleRouter struct{}
+
+//处理前
+func (HandleRouter) PreHandle(requestInterface Zinterface.RequestI) {
+	panic("implement me")
+}
+
+//处理中
+func (HandleRouter) Handle(requestInterface Zinterface.RequestI) {
+	panic("implement me")
+}
+
+//处理后
+func (HandleRouter) PostHandle(requestInterface Zinterface.RequestI) {
+	panic("implement me")
+}
+```
+
 启动客户端,制定服务器地址和端口号：
 
 ```go
@@ -111,6 +135,15 @@ BaseRouter是个基础业务处理模块，会将从客户端收到的消息打�
 ```go
 	c.Start()
 	c.SendMessage(1,"https")
+```
+
+目前定义的TCP消息格式：
+
+头8字节为数据头，包含消息长度和消息id，消息部分可以自定义格式，序列化Json、ProtoBuf都可以。
+
+```go
+/*|DataLen**|MessageID|Data|*/
+/*|***4Byte*|**4Byte**|*/
 ```
 
 
