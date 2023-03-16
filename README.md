@@ -12,8 +12,16 @@
 ### TODO：
 
 1. websocket协议支持
-2. 加入logrus、viper等框架集成使用
+2. 加入~~logrus~~、viper等框架集成使用
 3. 完成消息内容部分ProtoBuf的封装
+
+已经集成Zap日志框架，实现日志分级输出，错误日志输出到文件中，大部分日志输出到终端中。通过zap.L获取全局日志输出。
+
+```go
+zap.L().Info()//Debug()Panic()Error()
+```
+
+
 
 ### 特点
 
