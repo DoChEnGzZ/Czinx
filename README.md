@@ -77,10 +77,10 @@ go get github.com/DoChEnGzZ/Czinx
   "Name":"demo server",
   "Host":"0.0.0.0",
   "TcpPort":8080,
-  "MaxPackageSize": 512, //最大包长
-  "MaxConn":        1024, //最大可连接数
-  "MaxWorkPoolSize": 10, //最大工作协程数量
-  "MaxPoolTaskSize": 512 //最大协程可支持任务数
+  "MaxPackageSize": 512, 
+  "MaxConn":        1024, 
+  "MaxWorkPoolSize": 10, 
+  "MaxPoolTaskSize": 512 
 }
 ```
 启动服务器
