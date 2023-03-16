@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/DoChEnGzZ/Czinx/Zinterface"
 	"github.com/DoChEnGzZ/Czinx/utils"
-	"log"
+	"go.uber.org/zap"
 	"net"
 )
 
@@ -28,8 +28,6 @@ type Server struct {
 }
 
 func (s *Server) Start()  {
-	//log.Printf("%s is starting on %s:%d",s.Name,s.ipAddress,s.Port)
-	log.SetFlags(log.Ldate|log.Ltime|log.Llongfile)
 	var ctx context.Context
 	ctx,s.cancel =context.WithCancel(context.Background())
 	go func() {
@@ -38,31 +36,32 @@ func (s *Server) Start()  {
 	//1 获取本服务器的ip地址
 	addr, err := net.ResolveTCPAddr(s.ipVersion,fmt.Sprintf("%s:%d",s.ipAddress,s.Port))
 	if err != nil {
-		log.Printf("%s get ip addr error:%s",s.Name,err.Error())
+		zap.L().Error(fmt.Sprintf("server %s init tcp,ip addr error:%s",s.Name,err.Error()))
 		return 
 	}
 	//2 监听给出的ip地址和端口
 	listener, err := net.ListenTCP(s.ipVersion,addr)
 	if err != nil {
-		log.Printf("%s listen error:%s",s.Name,err.Error())
+		zap.L().Error(fmt.Sprintf("%s listen error:%s",s.Name,err.Error()))
 		return
 	}
-	log.Printf("%s start finished,now is listening......",s.Name)
+		zap.L().Debug(fmt.Sprintf("%s start finished,now is listening......",s.Name))
 	//3 阻塞等待客户端连接，处理客户端连接业务
 	for connID:=0;;connID++{
 		conn, err := listener.AcceptTCP()
 		if err != nil {
-			log.Printf("%s connection failed:%s",s.Name,err.Error())
+			zap.L().Error(fmt.Sprintf("%s connection failed:%s",s.Name,err.Error()))
 			continue
 		}
 		if s.manager.Size()>utils.GlobalConfig.MaxConn{
+			zap.L().Error(fmt.Sprintf("manager connPool is full",err))
 			err := conn.Close()
 			if err != nil {
-				log.Println("[Server]manager connPool is full",err)
+				zap.L().Error(err.Error())
 			}
 			continue
 		}
-		log.Printf("server connection established with %s",conn.RemoteAddr().String())
+		zap.L().Info(fmt.Sprintf("server connection established with %s",conn.RemoteAddr().String()))
 		//完成connection的注册，此时将方法传入此
 		c:=NewConnection(s,conn, uint32(connID),s.Handler)
 		go c.Start()
@@ -74,9 +73,9 @@ func (s *Server) Stop()  {
 	err := s.manager.Clear()
 	s.cancel()
 	if err != nil {
-		log.Println("[Server stop]error:",err)
+		zap.L().Error("server stop error:"+err.Error())
 	}
-	log.Println("[server stop]")
+	zap.L().Error("server stop error:"+err.Error())
 }
 
 func (s *Server) Serve()  {
@@ -86,15 +85,16 @@ func (s *Server) Serve()  {
 }
 
 func (s *Server) AddRouter(msgId uint32,router Zinterface.RouterI)  {
-	log.Println("Add router")
 	err := s.Handler.AddRouter(msgId, router)
 	if err != nil {
-		fmt.Println("add router error:",err)
+		zap.L().Error("add router error:"+err.Error())
 		return
 	}
 }
 
 func NewServer(name string) Zinterface.ServerI {
+	utils.InitLogger()
+	zap.L().Info("server "+utils.GlobalConfig.Name+"is creating")
 	s:=&Server{
 		Name:      utils.GlobalConfig.Name,
 		ipVersion: "tcp4",
@@ -112,19 +112,19 @@ func (s *Server) GetManager()Zinterface.ManagerI  {
 
 func (s *Server)CallAfterConnect(c Zinterface.ConnectionI){
 	if s.afterStart!=nil{
-		log.Println("[Connect]:call user hook func after connect")
+		zap.L().Info("[Connect]:call hook func after connect")
 		s.afterStart(c)
 	}
 }
 func (s *Server)CallBeforeConnect(c Zinterface.ConnectionI){
 	if s.beforeStart!=nil{
-		log.Println("[Connect]:call user hook func after connect")
+		zap.L().Info("[Connect]:call hook func after connect")
 		s.beforeStart(c)
 	}
 }
 func (s *Server)CallBeforeStop(c Zinterface.ConnectionI){
 	if s.beforeStop!=nil{
-		log.Println("[Connect]:call user hook func after connect")
+		zap.L().Info("[Connect]:call hook func after connect")
 		s.beforeStop(c)
 	}
 }

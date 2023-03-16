@@ -1,21 +1,22 @@
 package main
 
 import (
+	"fmt"
 	"github.com/DoChEnGzZ/Czinx/Zinterface"
 	"github.com/DoChEnGzZ/Czinx/Znet"
 	"github.com/DoChEnGzZ/Czinx/utils"
-	"log"
+	"go.uber.org/zap"
 )
 
 func main() {
 	server:=Znet.NewServer("ST")
 	server.AddRouter(0,Znet.BaseRouter{})
 	server.SetBeforeConnect(func(i Zinterface.ConnectionI) {
-		log.Printf("server %s is starting on %s:%d,maxbufsize is %d maxconnection nums is %d," +
+		zap.L().Info(fmt.Sprintf("server %s is starting on %s:%d,maxbufsize is %d maxconnection nums is %d," +
 			"connection id is %d",
 			utils.GlobalConfig.Name,utils.GlobalConfig.Host,
 			utils.GlobalConfig.Port,utils.GlobalConfig.MaxPackageSize,
-			utils.GlobalConfig.MaxConn,i.GetConnID())
+			utils.GlobalConfig.MaxConn,i.GetConnID()))
 		i.SetProperty("name","ZinxV1.0")
 	})
 	//var msgId uint32

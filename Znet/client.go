@@ -1,9 +1,8 @@
 package Znet
 
 import (
-	"fmt"
 	"github.com/DoChEnGzZ/Czinx/Zinterface"
-	"log"
+	"go.uber.org/zap"
 	"net"
 	"sync"
 )
@@ -27,7 +26,7 @@ type Client struct {
 }
 
 func NewClient(ip string,port int)*Client  {
-	log.SetFlags(log.Ltime|log.Llongfile)
+	//log.SetFlags(log.Ltime|log.Llongfile)
 	return &Client{
 		ip:         ip,
 		port:       port,
@@ -48,7 +47,7 @@ func (c *Client)Start(){
 		}
 		conn, err := net.DialTCP("tcp",nil,addr)
 		if err != nil {
-			log.Printf("[Client]start error"+err.Error())
+			zap.L().Error("[Client]start error"+err.Error())
 		}
 		c.conn=NewConnection(c,conn,0,c.msgHandler)
 		c.isOkChan<-true
@@ -60,7 +59,7 @@ func (c *Client)Start(){
 	}()
 }
 func (c *Client) Stop(){
-	log.Println("[Client]Stop")
+	//log.Println("[Client]Stop")
 	c.exitChan<- struct{}{}
 }
 
@@ -77,12 +76,12 @@ func (c *Client)GetMsgHandle()Zinterface.MsgHandleI{
 func (c *Client) AddRouter(msgId uint32,r Zinterface.RouterI){
 	err := c.msgHandler.AddRouter(msgId, r)
 	if err != nil {
-		fmt.Println("[Client]add router error")
+		zap.L().Error("[Client]add router error")
 	}
 }
 
 func (c *Client) SendMessage(id uint32, s string) {
-	fmt.Printf("id:%d,s:%s\n",id,s)
+	//fmt.Printf("id:%d,s:%s\n",id,s)
 	//等待连接建立完成
 	select {
 	case <-c.isOkChan:
@@ -90,7 +89,7 @@ func (c *Client) SendMessage(id uint32, s string) {
 	}
 	err := c.Conn().Send(id, []byte(s))
 	if err != nil {
-		log.Println("Client")
+		zap.L().Error(err.Error())
 	}
 }
 

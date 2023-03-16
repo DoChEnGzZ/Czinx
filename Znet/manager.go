@@ -2,8 +2,9 @@ package Znet
 
 import (
 	"errors"
+	"fmt"
 	"github.com/DoChEnGzZ/Czinx/Zinterface"
-	"log"
+	"go.uber.org/zap"
 	"strconv"
 	"sync"
 )
@@ -24,7 +25,7 @@ func (m *Manager) Add(c Zinterface.ConnectionI)  {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	m.connectionPool[c.GetConnID()]=c
-	log.Printf("[Manager]Id=%d add to manager",c.GetConnID())
+	zap.L().Info(fmt.Sprintf("[Manager]connection:%d add to manager",c.GetConnID()))
 }
 
 func (m *Manager) Get(id uint32)(Zinterface.ConnectionI,error)  {

@@ -2,7 +2,7 @@ package Znet
 
 import (
 	"github.com/DoChEnGzZ/Czinx/Zinterface"
-	"log"
+	"go.uber.org/zap"
 )
 
 
@@ -19,10 +19,10 @@ func (r BaseRouter) PreHandle(request Zinterface.RequestI)  {
 
 }
 func (r BaseRouter) Handle(request Zinterface.RequestI)  {
-	log.Println("[Server]receive"+string(request.GetData()))
+	zap.L().Info("[Server]receive"+string(request.GetData()))
 	err := request.GetConnection().Send(3, []byte(r.text))
 	if err != nil {
-		log.Println("[Basic Router]handle error:",err)
+		zap.L().Error("[Basic Router]handle error:"+err.Error())
 		return
 	}
 }

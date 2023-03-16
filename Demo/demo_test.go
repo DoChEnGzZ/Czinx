@@ -32,14 +32,14 @@ func makeS() {
 
 func makeC() {
 	c:=Znet.NewClient("127.0.0.1",8080)
-	c.SetAfterConnect(func(i Zinterface.ConnectionI) {
-		err := i.Send(0, []byte("http"))
-		if err != nil {
-			panic(err)
-		}
-	})
-	for i:=0;i<100;i++{
-		c.Start()
+	//c.SetAfterConnect(func(i Zinterface.ConnectionI) {
+	//	err := i.Send(0, []byte("http"))
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//})
+	go c.Start()
+	for i:=0;i<1000;i++{
 		time.Sleep(10*time.Millisecond)
 		c.SendMessage(0,"attack the server!")
 		time.Sleep(10*time.Millisecond)
@@ -48,15 +48,19 @@ func makeC() {
 }
 
 func TestServer(t *testing.T) {
-	makeS()
+	go makeS()
+	time.Sleep(100*time.Millisecond)
 	makeC()
 	select {
 	}
 }
 
 func BenchmarkName(b *testing.B) {
+	//go makeS()
+	time.Sleep(100*time.Millisecond)
 	for i := 0; i < b.N; i++ {
-		go makeC()
+		a:=0
+		a++
 	}
 }
 

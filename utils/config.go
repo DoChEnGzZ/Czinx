@@ -3,8 +3,8 @@ package utils
 import (
 	"encoding/json"
 	"github.com/DoChEnGzZ/Czinx/Zinterface"
+	"go.uber.org/zap"
 	"io/ioutil"
-	"log"
 )
 
 //
@@ -31,15 +31,15 @@ var GlobalConfig *Config
 var configPath="config/config.json"
 
 func (c *Config)loadFromJson(){
-	log.Printf("Read config from %s",configPath)
+	zap.L().Info("Read config from %s"+configPath)
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		log.Println("Config Load error"+err.Error())
+		zap.L().Error("Config Load error"+err.Error())
 		return
 	}
 	err = json.Unmarshal(data, &GlobalConfig)
 	if err != nil {
-		log.Println("Config Load error"+err.Error())
+		zap.L().Error("Config Load error"+err.Error())
 		return
 	}
 }

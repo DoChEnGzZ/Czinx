@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/DoChEnGzZ/Czinx/Zinterface"
 	"github.com/DoChEnGzZ/Czinx/utils"
+	"go.uber.org/zap"
 	"golang.org/x/time/rate"
-	"log"
 	"time"
 )
 
@@ -40,17 +40,17 @@ func NewMsgHandlerByConfig()*MsgHandler{
 }
 
 func (h *MsgHandler) StartWorker(ctx context.Context,workerId int,taskChan chan Zinterface.RequestI,bucket *rate.Limiter)  {
-	log.Printf("WorkerPool:%d is startting",workerId)
+	zap.L().Info(fmt.Sprintf("WorkerPool:%d is startting",workerId))
 	for{
 		select {
 		case r:=<-taskChan:
 			if err:=bucket.Wait(ctx);err!=nil{
-				log.Printf("WorkerPool:%d handle error:%s",workerId,err)
+				zap.L().Error(fmt.Sprintf("WorkerPool:%d handle error:%s",workerId,err))
 				continue
 			}
 			err := h.Handle(r)
 			if err != nil {
-				log.Printf("WorkerPool:%d handle error:%s",workerId,err)
+				zap.L().Error(fmt.Sprintf("WorkerPool:%d handle error:%s",workerId,err))
 				continue
 			}
 		case <-ctx.Done():
@@ -62,7 +62,7 @@ func (h *MsgHandler) StartWorker(ctx context.Context,workerId int,taskChan chan 
 func (h *MsgHandler) StartWorkerPool(ctx context.Context){
 	for i:=0;i<h.MaxPoolSize;i++{
 		if h.TaskQueue[i]!=nil{
-			log.Printf("workerpool %d already exited",i)
+			zap.L().Error(fmt.Sprintf("workerpool %d already exited",i))
 			return
 		}
 		h.TaskQueue[i]=make(chan Zinterface.RequestI,h.MaxPoolSize)
@@ -72,8 +72,8 @@ func (h *MsgHandler) StartWorkerPool(ctx context.Context){
 }
 func (h *MsgHandler) SendMessage(r Zinterface.RequestI){
 	workerId:=int(r.GetConnection().GetConnID())%h.MaxPoolSize
-	log.Printf("ConnID=%d,MsgID=%d send msg with WorkerId=%d in worker pool",r.GetConnection().GetConnID(),
-		r.GetMessageID(),workerId)
+	zap.L().Debug(fmt.Sprintf("connection:%d MsgID:%d, send msg by WorkerId=%d in worker pool",r.GetConnection().GetConnID(),
+		r.GetMessageID(),workerId))
 	h.TaskQueue[workerId]<-r
 }
 
@@ -81,7 +81,7 @@ func (h *MsgHandler) AddRouter(id uint32,r Zinterface.RouterI)error{
 	if _,ok:=h.MsgRouterMap[id];ok{
 		return errors.New(fmt.Sprintf("Msgid= %d,Router has been registed",id))
 	}
-	fmt.Printf("Msgid= %d,Router regist",id)
+	//zap.L().Error(fmt.Sprintf("Msgid= %d,Router regist",id))
 	h.MsgRouterMap[id]=r
 	return nil
 }

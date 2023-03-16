@@ -3,10 +3,11 @@ package Znet
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"github.com/DoChEnGzZ/Czinx/Zinterface"
 	"github.com/DoChEnGzZ/Czinx/utils"
+	"go.uber.org/zap"
 	"io"
-	"log"
 	"net"
 	"strconv"
 	"sync"
@@ -67,7 +68,6 @@ func NewClientConnection(client Zinterface.ClientI,conn *net.TCPConn,coonId uint
 
 //启动读写业务
 func (c *Connection) StartReader(){
-	log.Printf("[Connection]Reader GoRoutine is running...")
 	//defer c.Stop()
 	//defer log.Printf("[Connection]ConnID=%d RemoteAddr=%s stop reading",c.GetConnID(),c.GetRemoteAddr())
 
@@ -77,6 +77,7 @@ func (c *Connection) StartReader(){
 		_, err := io.ReadFull(c.GetTcpConnection(),head)
 		if err != nil {
 			//log.Printf("[Connection]Read error=%s,no msg since connected",err.Error())
+			//zap.L().Debug(fmt.Sprintf("Read error=%s,no msg since connected",err.Error()))
 			//c.StopChan<-true
 			continue
 		}
@@ -87,7 +88,7 @@ func (c *Connection) StartReader(){
 		data:=make([]byte,dataLen)
 		_, err = io.ReadFull(c.GetTcpConnection(), data)
 		if err != nil {
-			log.Printf("[Connection]Read error=%s",err.Error())
+			zap.L().Error(fmt.Sprintf("[Connection]Read error=%s",err.Error()))
 			//c.StopChan<-true
 			continue
 		}
@@ -95,7 +96,7 @@ func (c *Connection) StartReader(){
 		buf:=append(head,data...)
 		msg, err :=DefaultDataPack.UnPack(buf)
 		if err!=nil{
-			log.Printf("[Connection]Read error=%s",err.Error())
+			zap.L().Error(fmt.Sprintf("[Connection]Read error=%s",err.Error()))
 			c.StopChan<-true
 			continue
 		}
@@ -112,25 +113,25 @@ func (c *Connection) StartReader(){
 }
 
 func (c *Connection) StartWriter(){
-	log.Println("[Connection][Writer Goroutine] is running")
-	defer log.Println("[Connection][Writer Goroutine] is closing")
+	//log.Println("[Connection][Writer Goroutine] is running")
+	defer zap.L().Debug("[Connection][Writer Goroutine] is closing")
 	for{
 		select {
 		//从WriteChan中读到数据并发送出去
 		case data:=<-c.WriteChan:
 			_, err := c.Conn.Write(data)
 			if err != nil {
-				log.Printf("[Connection][Writer Goroutine] write data error:%s"+err.Error())
+				zap.L().Error(fmt.Sprintf("[Writer Goroutine] write data error:%s"+err.Error()))
 				return
 			}
 		case data,ok:=<-c.WriteBufChan:
 			if !ok{
-				log.Printf("[Connection][Writer Goroutine] write data error:WriteBufChan Closed")
+				zap.L().Error("[Writer Goroutine] write data error:WriteBufChan Closed")
 				break
 			}else {
 				_,err:=c.Conn.Write(data)
 				if err != nil {
-					log.Printf("[Connection][Writer Goroutine] write data error:%s"+err.Error())
+					zap.L().Error(fmt.Sprintf("[Connection][Writer Goroutine] write data error:%s"+err.Error()))
 					return
 			}
 			}
@@ -143,21 +144,17 @@ func (c *Connection) StartWriter(){
 
 func (c *Connection) Start()  {
 	if c.IsClosed{
-		log.Printf("[Connection]%d connection is closed",c.ConnID)
+		zap.L().Error(fmt.Sprintf("[Connection]%d connection is closed",c.ConnID))
 		return
 	}
-	if c.TcpServer!=nil{
-		c.TcpServer.CallBeforeConnect(c)
-	}
+	c.TcpServer.CallBeforeConnect(c)
 	go c.StartReader()
 	go c.StartWriter()
-	if c.TcpServer!=nil{
-		c.TcpServer.CallAfterConnect(c)
-	}
+	c.TcpServer.CallAfterConnect(c)
 	for{
 		select {
 		case <-c.StopChan:
-			log.Printf("[Connection]recieve stop signal from chan")
+			zap.L().Info("[Connection]recieve stop signal from chan")
 			c.Stop()
 			return
 		}
@@ -165,7 +162,7 @@ func (c *Connection) Start()  {
 }
 
 func (c *Connection) Stop()  {
-	log.Printf("[Connection]stop ConnID=%d",c.ConnID)
+	zap.L().Info(fmt.Sprintf("[Connection]ConnID=%d connection stop",c.ConnID))
 	if c.TcpServer!=nil{
 		c.TcpServer.CallBeforeStop(c)
 	}
@@ -176,7 +173,7 @@ func (c *Connection) Stop()  {
 	err := c.Conn.Close()
 	c.Handler.Close()
 	if err != nil {
-		log.Printf("[Connection]Stop error=%s",err.Error())
+		zap.L().Error(fmt.Sprintf("[Connection]Stop error=%s",err.Error()))
 		return
 	}
 	c.StopChan<-true
@@ -184,7 +181,7 @@ func (c *Connection) Stop()  {
 		err = c.TcpServer.GetManager().Remove(c.ConnID)
 	}
 	if err != nil {
-		log.Println("[Connection]stop error",err)
+		zap.L().Error(fmt.Sprintf("[Connection]stop error",err))
 	}
 	close(c.StopChan)
 	close(c.WriteBufChan)
@@ -205,9 +202,9 @@ func (c *Connection) Send(messageId uint32,data []byte)error  {
 	}
 	msg:=NewMessage(data,messageId)
 	bytes, err := DefaultDataPack.Pack(msg)
-	log.Println(string(bytes))
+	//log.Println(string(bytes))
 	if err != nil {
-		log.Printf("[Connection]Message Pack error:%s",err.Error())
+		zap.L().Error(fmt.Sprintf("[Connection]Message Pack error:%s",err.Error()))
 		return err
 	}
 	c.WriteChan<-bytes
@@ -221,7 +218,7 @@ func (c *Connection) SendBuff(messageId uint32,data []byte)error{
 	msg:=NewMessage(data,messageId)
 	bytes,err:= DefaultDataPack.Pack(msg)
 	if err != nil {
-		log.Printf("[Connection]Message Pack error:%s",err.Error())
+		zap.L().Error(fmt.Sprintf("[Connection]Message Pack error:%s",err.Error()))
 		return err
 	}
 	c.WriteBufChan<-bytes
@@ -236,7 +233,7 @@ func (c *Connection)SetProperty(key string, value interface{}){
 	c.PropertyMutex.Lock()
 	defer c.PropertyMutex.Unlock()
 	c.Property[key]=value
-	log.Printf("[Connection]No.%dConnection add property key:%s string:%v",c.GetConnID(),key,value)
+	//log.Printf("[Connection]No.%dConnection add property key:%s string:%v",c.GetConnID(),key,value)
 }
 //获取链接属性
 func (c *Connection)GetProperty(key string)(interface{}, error){
