@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"Czinx/Zinterface"
 	"encoding/json"
+	"github.com/DoChEnGzZ/Czinx/Zinterface"
 	"io/ioutil"
 	"log"
 )

@@ -24,6 +24,59 @@
 
 
 
+### 使用
+
+下载安装
+
+```bash
+go get github.com/DoChEnGzZ/Czinx
+```
+
+配置服务器`config/config.json`
+
+```json
+{
+  "Name":"demo server",
+  "Host":"0.0.0.0",
+  "TcpPort":8080,
+  "MaxPackageSize": 512, //最大包长
+  "MaxConn":        1024, //最大可连接数
+  "MaxWorkPoolSize": 10, //最大工作协程数量
+  "MaxPoolTaskSize": 512 //最大协程可支持任务数
+}
+```
+启动服务器
+```go
+	s:=Znet.NewServer("test")
+	go s.Serve()
+```
+
+为服务器注册业务，每个业务对应不同的消息id
+
+BaseRouter是个基础业务处理模块，会将从客户端收到的消息打印在日志中
+
+```go
+	s.AddRouter(0,Znet.NewBaseRouter("client 0 test message"))
+	s.AddRouter(1,Znet.NewBaseRouter("client 1 test message"))
+```
+
+启动客户端,制定服务器地址和端口号：
+
+```go
+	c:=Znet.NewClient("127.0.0.1",8080)
+```
+
+实现go客户端仅供测试使用。
+
+启动客户端并且发送测试消息
+
+```go
+	c.Start()
+	c.SendMessage(1,"https")
+```
+
+
+
 #### 实现长连接：
 
 完成tcp连接后，
