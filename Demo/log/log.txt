@@ -309,3 +309,4 @@
 2023-03-16T21:06:15.056+0800	ERROR	Znet/server.go:64	server connection established with 127.0.0.1:57973
 2023-03-16T21:06:15.078+0800	ERROR	Znet/server.go:64	server connection established with 127.0.0.1:57974
 2023-03-16T21:06:15.100+0800	ERROR	Znet/server.go:64	server connection established with 127.0.0.1:57975
+2023-03-17T21:53:42.562+0800	ERROR	utils/config.go:73	open ./config/config.json: no such file or directory

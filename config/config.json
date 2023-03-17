@@ -3,7 +3,7 @@
   "Host":"0.0.0.0",
   "Port":8088,
   "MaxPackageSize": 512,
-  "MaxConn":        256,
+  "MaxConn":        128,
   "MaxWorkPoolSize": 10,
   "MaxPoolTaskSize": 512
 }

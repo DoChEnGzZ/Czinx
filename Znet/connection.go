@@ -44,9 +44,9 @@ func NewConnection(server Zinterface.ServerI,conn *net.TCPConn,coonId uint64,han
 		WriteChan: make(chan []byte),
 		WriteBufChan: make(chan []byte,utils.GlobalConfig.MaxPackageSize),
 	}
-	if c.TcpServer.GetManager()!=nil{
-		c.TcpServer.GetManager().Add(c)
-	}
+	//if c.TcpServer.GetManager()!=nil{
+	//	c.TcpServer.GetManager().Add(c)
+	//}
 	return c
 }
 
@@ -97,7 +97,7 @@ func (c *Connection) StartReader(){
 		msg, err :=DefaultDataPack.UnPack(buf)
 		if err!=nil{
 			zap.L().Error(fmt.Sprintf("[Connection]Read error=%s",err.Error()))
-			c.StopChan<-true
+			//c.StopChan<-true
 			continue
 		}
 		//根据获取的数据构造request
@@ -107,6 +107,7 @@ func (c *Connection) StartReader(){
 			message: msg,
 		}
 		if utils.GlobalConfig.MaxWorkPoolSize>0{
+			_ = c.GetManager().UseLru(c.GetConnID())
 			c.Handler.SendMessage(req)
 		}
 	}
@@ -119,6 +120,7 @@ func (c *Connection) StartWriter(){
 		select {
 		//从WriteChan中读到数据并发送出去
 		case data:=<-c.WriteChan:
+			_ = c.GetManager().UseLru(c.GetConnID())
 			_, err := c.Conn.Write(data)
 			if err != nil {
 				zap.L().Error(fmt.Sprintf("[Writer Goroutine] write data error:%s"+err.Error()))
@@ -129,6 +131,7 @@ func (c *Connection) StartWriter(){
 				zap.L().Error("[Writer Goroutine] write data error:WriteBufChan Closed")
 				break
 			}else {
+				_ = c.GetManager().UseLru(c.GetConnID())
 				_,err:=c.Conn.Write(data)
 				if err != nil {
 					zap.L().Error(fmt.Sprintf("[Connection][Writer Goroutine] write data error:%s"+err.Error()))
@@ -137,6 +140,7 @@ func (c *Connection) StartWriter(){
 			}
 		//从stopChan中收到信号，关闭WriteRoutine
 		case <-c.StopChan:
+			//zap.L().Debug("writer:receive stop signal from chan")
 			return
 		}
 	}
@@ -147,7 +151,7 @@ func (c *Connection) Start()  {
 		zap.L().Error(fmt.Sprintf("[Connection]%d connection is closed",c.ConnID))
 		return
 	}
-	zap.L().Debug("call before start")
+	//zap.L().Debug("call before start")
 	c.TcpServer.CallBeforeConnect(c)
 	go c.StartReader()
 	go c.StartWriter()
@@ -155,32 +159,30 @@ func (c *Connection) Start()  {
 	for{
 		select {
 		case <-c.StopChan:
-			zap.L().Info("[Connection]receive stop signal from chan")
-			c.Stop()
+			//zap.L().Info("[Connection]receive stop signal from chan")
+			//c.Stop()
 			return
 		}
 	}
 }
 
 func (c *Connection) Stop()  {
-	zap.L().Info(fmt.Sprintf("[Connection]ConnID=%d connection stop",c.ConnID))
-	if c.TcpServer!=nil{
-		c.TcpServer.CallBeforeStop(c)
-	}
+	//zap.L().Info(fmt.Sprintf("[Connection]ConnID=%d connection stop",c.ConnID))
+	c.TcpServer.CallBeforeStop(c)
 	if c.IsClosed{
 		return
 	}
 	c.IsClosed=true
 	err := c.Conn.Close()
-	c.Handler.Close()
+	//c.Handler.Close()
 	if err != nil {
 		zap.L().Error(fmt.Sprintf("[Connection]Stop error=%s",err.Error()))
 		return
 	}
 	c.StopChan<-true
-	if c.TcpServer.GetManager()!=nil{
-		err = c.TcpServer.GetManager().Remove(c.ConnID)
-	}
+	//if c.TcpServer.GetManager()!=nil{
+	//	err = c.TcpServer.GetManager().Remove(c.ConnID)
+	//}
 	if err != nil {
 		zap.L().Error("[Connection]stop error"+err.Error())
 	}
@@ -204,6 +206,7 @@ func (c *Connection) Send(messageId uint32,data []byte)error  {
 	msg:=NewMessage(data,messageId)
 	bytes, err := DefaultDataPack.Pack(msg)
 	//log.Println(string(bytes))
+	zap.L().Debug("send:"+strconv.Itoa(int(messageId))+":"+string(bytes))
 	if err != nil {
 		zap.L().Error(fmt.Sprintf("[Connection]Message Pack error:%s",err.Error()))
 		return err

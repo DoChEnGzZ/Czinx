@@ -130,13 +130,13 @@ func (s *Server)CallAfterConnect(c Zinterface.ConnectionI){
 }
 func (s *Server)CallBeforeConnect(c Zinterface.ConnectionI){
 	if s.beforeStart!=nil{
-		zap.L().Info("[Connect]:call hook func after connect")
+		//zap.L().Info("[Connect]:call hook func after connect")
 		s.beforeStart(c)
 	}
 }
 func (s *Server)CallBeforeStop(c Zinterface.ConnectionI){
 	if s.beforeStop!=nil{
-		zap.L().Info("[Connect]:call hook func after connect")
+		//zap.L().Info("[Connect]:call hook func after connect")
 		s.beforeStop(c)
 	}
 }
