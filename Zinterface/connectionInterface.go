@@ -10,9 +10,10 @@ type ConnectionI interface {
 	//获取套接字
 	GetTcpConnection()*net.TCPConn
 	//获取连接ID
-	GetConnID() uint32
+	GetConnID() uint64
 	//获取远程客户端的地址
 	GetRemoteAddr()net.Addr
+	GetManager()ManagerI
 	//发送数据
 	Send(messageId uint32,data []byte)error
 	SendBuff(messageId uint32,data []byte)error

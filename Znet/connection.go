@@ -15,9 +15,9 @@ import (
 
 type Connection struct {
 	TcpServer Zinterface.ServerI
-	Client Zinterface.ClientI
+	//Client Zinterface.ClientI
 	Conn *net.TCPConn
-	ConnID uint32
+	ConnID uint64
 	IsClosed bool
 	//HandleApi Zinterface.HandleFunc
 	Handler Zinterface.MsgHandleI
@@ -31,7 +31,7 @@ type Connection struct {
 	WriteBufChan chan []byte
 }
 
-func NewConnection(server Zinterface.ServerI,conn *net.TCPConn,coonId uint32,handler Zinterface.MsgHandleI)*Connection{
+func NewConnection(server Zinterface.ServerI,conn *net.TCPConn,coonId uint64,handler Zinterface.MsgHandleI)*Connection{
 	c:= &Connection{
 		TcpServer: server,
 		Conn:      conn,
@@ -50,21 +50,21 @@ func NewConnection(server Zinterface.ServerI,conn *net.TCPConn,coonId uint32,han
 	return c
 }
 
-func NewClientConnection(client Zinterface.ClientI,conn *net.TCPConn,coonId uint32,handler Zinterface.MsgHandleI)*Connection{
-	c:= &Connection{
-		Client: client,
-		Conn:      conn,
-		ConnID:    coonId,
-		IsClosed:  false,
-		Handler: handler,
-		Property: make(map[string]interface{}),
-		PropertyMutex: sync.RWMutex{},
-		StopChan:  make(chan bool,1),
-		WriteChan: make(chan []byte),
-		WriteBufChan: make(chan []byte,utils.GlobalConfig.MaxPackageSize),
-	}
-	return c
-}
+//func NewClientConnection(client Zinterface.ClientI,conn *net.TCPConn,coonId uint64,handler Zinterface.MsgHandleI)*Connection{
+//	c:= &Connection{
+//		Client: client,
+//		Conn:      conn,
+//		ConnID:    coonId,
+//		IsClosed:  false,
+//		Handler: handler,
+//		Property: make(map[string]interface{}),
+//		PropertyMutex: sync.RWMutex{},
+//		StopChan:  make(chan bool,1),
+//		WriteChan: make(chan []byte),
+//		WriteBufChan: make(chan []byte,utils.GlobalConfig.MaxPackageSize),
+//	}
+//	return c
+//}
 
 //启动读写业务
 func (c *Connection) StartReader(){
@@ -147,6 +147,7 @@ func (c *Connection) Start()  {
 		zap.L().Error(fmt.Sprintf("[Connection]%d connection is closed",c.ConnID))
 		return
 	}
+	zap.L().Debug("call before start")
 	c.TcpServer.CallBeforeConnect(c)
 	go c.StartReader()
 	go c.StartWriter()
@@ -225,7 +226,11 @@ func (c *Connection) SendBuff(messageId uint32,data []byte)error{
 	return nil
 }
 
-func (c *Connection) GetConnID()uint32  {
+func (c *Connection) GetManager()Zinterface.ManagerI  {
+	return c.TcpServer.GetManager()
+}
+
+func (c *Connection) GetConnID()uint64  {
 	return c.ConnID
 }
 //设置链接属性

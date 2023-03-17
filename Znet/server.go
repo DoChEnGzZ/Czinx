@@ -47,7 +47,7 @@ func (s *Server) Start()  {
 	}
 		zap.L().Debug(fmt.Sprintf("%s start finished,now is listening......",s.Name))
 	//3 阻塞等待客户端连接，处理客户端连接业务
-	for connID:=0;;connID++{
+	for {
 		conn, err := listener.AcceptTCP()
 		if err != nil {
 			zap.L().Error(fmt.Sprintf("%s connection failed:%s",s.Name,err.Error()))
@@ -63,7 +63,12 @@ func (s *Server) Start()  {
 		//}
 		zap.L().Info(fmt.Sprintf("server connection established with %s",conn.RemoteAddr().String()))
 		//完成connection的注册，此时将方法传入此
-		c:=NewConnection(s,conn, uint32(connID),s.Handler)
+		snowId,err:=utils.GetId()
+		if err!=nil{
+			zap.L().Error(err.Error())
+			continue
+		}
+		c:=NewConnection(s,conn, snowId,s.Handler)
 		if err:=s.manager.Add(c);err!=nil{
 			zap.L().Error(err.Error())
 			c.Stop()
@@ -99,6 +104,7 @@ func (s *Server) AddRouter(msgId uint32,router Zinterface.RouterI)  {
 
 func NewServer(name string) Zinterface.ServerI {
 	utils.InitLogger()
+	utils.Init(1)
 	zap.L().Info("server "+utils.GlobalConfig.Name+"is creating")
 	s:=&Server{
 		Name:      utils.GlobalConfig.Name,
@@ -137,6 +143,7 @@ func (s *Server)SetAfterConnect(f Zinterface.ConnectionFunc){
 	s.afterStart=f
 }
 func (s *Server)SetBeforeConnect(f Zinterface.ConnectionFunc){
+	//zap.L().Debug("set before connect")
 	s.beforeStart=f
 }
 func (s *Server)SetBeforeStop(f Zinterface.ConnectionFunc){

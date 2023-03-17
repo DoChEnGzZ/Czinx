@@ -11,7 +11,7 @@ import (
 )
 
 type Manager struct {
-	connectionPool map[uint32]Zinterface.ConnectionI
+	connectionPool map[uint64]Zinterface.ConnectionI
 	lock sync.RWMutex
 	connNums int
 	MaxConn int
@@ -19,7 +19,7 @@ type Manager struct {
 
 func NewManager()*Manager{
 	return &Manager{
-		connectionPool: make(map[uint32]Zinterface.ConnectionI),
+		connectionPool: make(map[uint64]Zinterface.ConnectionI),
 		lock:           sync.RWMutex{},
 		connNums: 0,
 		MaxConn: utils.GlobalConfig.MaxConn,
@@ -38,7 +38,7 @@ func (m *Manager) Add(c Zinterface.ConnectionI)error  {
 	return nil
 }
 
-func (m *Manager) Get(id uint32)(Zinterface.ConnectionI,error)  {
+func (m *Manager) Get(id uint64)(Zinterface.ConnectionI,error)  {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 	if c,ok:=m.connectionPool[id];ok{
@@ -48,7 +48,7 @@ func (m *Manager) Get(id uint32)(Zinterface.ConnectionI,error)  {
 	}
 }
 
-func (m *Manager) Remove(id uint32)error  {
+func (m *Manager) Remove(id uint64)error  {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 	if c,ok:=m.connectionPool[id];ok{
