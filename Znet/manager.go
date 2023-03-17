@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/DoChEnGzZ/Czinx/Zinterface"
+	"github.com/DoChEnGzZ/Czinx/utils"
 	"go.uber.org/zap"
 	"strconv"
 	"sync"
@@ -12,20 +13,29 @@ import (
 type Manager struct {
 	connectionPool map[uint32]Zinterface.ConnectionI
 	lock sync.RWMutex
+	connNums int
+	MaxConn int
 }
 
 func NewManager()*Manager{
 	return &Manager{
 		connectionPool: make(map[uint32]Zinterface.ConnectionI),
 		lock:           sync.RWMutex{},
+		connNums: 0,
+		MaxConn: utils.GlobalConfig.MaxConn,
 	}
 }
 
-func (m *Manager) Add(c Zinterface.ConnectionI)  {
+func (m *Manager) Add(c Zinterface.ConnectionI)error  {
+	if m.connNums>m.MaxConn{
+		return errors.New(fmt.Sprintf("connection pool is full,max connnums is %d",m.MaxConn))
+	}
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	m.connectionPool[c.GetConnID()]=c
 	zap.L().Info(fmt.Sprintf("[Manager]connection:%d add to manager",c.GetConnID()))
+	m.connNums++
+	return nil
 }
 
 func (m *Manager) Get(id uint32)(Zinterface.ConnectionI,error)  {

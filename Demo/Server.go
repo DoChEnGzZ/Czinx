@@ -12,8 +12,8 @@ func main() {
 	server:=Znet.NewServer("ST")
 	server.AddRouter(0,Znet.BaseRouter{})
 	server.SetBeforeConnect(func(i Zinterface.ConnectionI) {
-		zap.L().Info(fmt.Sprintf("server %s is starting on %s:%d,maxbufsize is %d maxconnection nums is %d," +
-			"connection id is %d",
+		zap.L().Info(fmt.Sprintf("server:%s on %s:%d,maxbufsize is %d maxconnection nums is %d," +
+			"current connection nums is %d",
 			utils.GlobalConfig.Name,utils.GlobalConfig.Host,
 			utils.GlobalConfig.Port,utils.GlobalConfig.MaxPackageSize,
 			utils.GlobalConfig.MaxConn,i.GetConnID()))

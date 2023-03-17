@@ -154,7 +154,7 @@ func (c *Connection) Start()  {
 	for{
 		select {
 		case <-c.StopChan:
-			zap.L().Info("[Connection]recieve stop signal from chan")
+			zap.L().Info("[Connection]receive stop signal from chan")
 			c.Stop()
 			return
 		}

@@ -53,17 +53,22 @@ func (s *Server) Start()  {
 			zap.L().Error(fmt.Sprintf("%s connection failed:%s",s.Name,err.Error()))
 			continue
 		}
-		if s.manager.Size()>utils.GlobalConfig.MaxConn{
-			zap.L().Error(fmt.Sprintf("manager connPool is full",err))
-			err := conn.Close()
-			if err != nil {
-				zap.L().Error(err.Error())
-			}
-			continue
-		}
+		//if s.manager.Size()>utils.GlobalConfig.MaxConn{
+		//	zap.L().Error(fmt.Sprintf("manager connPool is full",err))
+		//	err := conn.Close()
+		//	if err != nil {
+		//		zap.L().Error(err.Error())
+		//	}
+		//	continue
+		//}
 		zap.L().Info(fmt.Sprintf("server connection established with %s",conn.RemoteAddr().String()))
 		//完成connection的注册，此时将方法传入此
 		c:=NewConnection(s,conn, uint32(connID),s.Handler)
+		if err:=s.manager.Add(c);err!=nil{
+			zap.L().Error(err.Error())
+			c.Stop()
+			continue
+		}
 		go c.Start()
 	}
 	}()
