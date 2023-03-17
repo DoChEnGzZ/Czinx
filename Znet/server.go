@@ -102,9 +102,10 @@ func (s *Server) AddRouter(msgId uint32,router Zinterface.RouterI)  {
 	}
 }
 
-func NewServer(name string) Zinterface.ServerI {
+func NewServer() Zinterface.ServerI {
 	utils.InitLogger()
-	utils.Init(1)
+	utils.InitSnowFlake(1)
+	utils.InitConfig()
 	zap.L().Info("server "+utils.GlobalConfig.Name+"is creating")
 	s:=&Server{
 		Name:      utils.GlobalConfig.Name,

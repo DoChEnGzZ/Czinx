@@ -182,7 +182,7 @@ func (c *Connection) Stop()  {
 		err = c.TcpServer.GetManager().Remove(c.ConnID)
 	}
 	if err != nil {
-		zap.L().Error(fmt.Sprintf("[Connection]stop error",err))
+		zap.L().Error("[Connection]stop error"+err.Error())
 	}
 	close(c.StopChan)
 	close(c.WriteBufChan)

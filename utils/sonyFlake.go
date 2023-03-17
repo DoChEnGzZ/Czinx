@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"github.com/sony/sonyflake"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -15,7 +16,7 @@ func getMachineId()(uint16,error){
 	return sonyMachineID,nil
 }
 
-func Init(machineID uint16)  {
+func InitSnowFlake(machineID uint16)  {
 	sonyMachineID=machineID
 	t,_:=time.Parse("2006-01-02", "2023-01-01")
 	settings:=sonyflake.Settings{
@@ -23,6 +24,7 @@ func Init(machineID uint16)  {
 		MachineID:      getMachineId,
 	}
 	snowFlake=sonyflake.NewSonyflake(settings)
+	zap.L().Info("sony flake init success")
 }
 
 func GetId()(uint64,error){

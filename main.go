@@ -24,18 +24,5 @@ func main() {
 	go server.Serve()
 	select {
 	}
-}
 
-type HandleRouter struct{}
-
-func (HandleRouter) PreHandle(requestInterface Zinterface.RequestI) {
-	panic("implement me")
-}
-
-func (HandleRouter) Handle(requestInterface Zinterface.RequestI) {
-	panic("implement me")
-}
-
-func (HandleRouter) PostHandle(requestInterface Zinterface.RequestI) {
-	panic("implement me")
 }

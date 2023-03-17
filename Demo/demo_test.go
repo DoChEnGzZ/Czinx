@@ -14,7 +14,7 @@ import (
 )
 
 func makeS() {
-	s:=Znet.NewServer("test")
+	s:=Znet.NewServer()
 	fmt.Println(utils.GlobalConfig.Name,utils.GlobalConfig.Host,utils.GlobalConfig.Port)
 	s.AddRouter(0,Znet.NewBaseRouter("client 0 test message"))
 	s.AddRouter(1,Znet.NewBaseRouter("client 0 test message"))
