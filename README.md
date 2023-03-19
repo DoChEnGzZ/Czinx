@@ -26,31 +26,27 @@ zap.L().Info()//Debug()Panic()Error()
 
 ### 特点
 
-特点：轻量级，实现TCP长连接通信，高并发，高度自由的面相接口应用开发
+特点：轻量级，实现TCP长连接通信，高并发，高度自由的面相接口开发
 
 
 
 项目目录结构
 
+1. `Zinterface`接口
+2. `zNet`核心功能
+3. `config`配置文件
+4. `utils`工具包
+
 ```bash
-CZinx
+Czinx
 ├── Demo
-│   └── Server.go
 ├── README.md
 ├── Zinterface
-│   ├── clientInterface.go
-│   ├── connectionInterface.go
-│   ├── datapackInterface.go
-│   ├── managerInterface.go
-│   ├── messageInterface.go
-│   ├── msghandleInterface.go
-│   ├── requestInterface.go
-│   ├── routerInterface.go
-│   └── serverInterface.go
 ├── Znet
 │   ├── client.go
 │   ├── connection.go
 │   ├── datapack.go
+│   ├── handleRouter.go
 │   ├── manager.go
 │   ├── message.go
 │   ├── msgHandle.go
@@ -60,8 +56,13 @@ CZinx
 │   └── server_test.go
 ├── config
 │   └── config.json
+├── log
+├── main.go
+├── pics
 └── utils
-    └── config.go
+    ├── config.go
+    ├── logger.go
+    └── sonyFlake.go
 ```
 
 
@@ -82,6 +83,16 @@ go get github.com/DoChEnGzZ/Czinx
 
 配置服务器`config/config.json`
 
+1. `MaxPackageSize`最大包长，不包含包头
+
+2. `MaxWorkPoolSize`最大处理协程数，请设置适合自己CPU的数字
+
+3. `MaxConn`最大连接数，当出现超过最大连接数的连接时会调用LRU模块，断开最近未联系的连接，以满足最新的连接需求。
+
+4. `MaxPoolTaskSiz`每个协程最大可接受任务数，令牌桶的令牌数也会按此设置
+
+   
+
 ```json
 {
   "Name":"demo server",
@@ -95,7 +106,7 @@ go get github.com/DoChEnGzZ/Czinx
 ```
 启动服务器
 ```go
-	s:=Znet.NewServer("test")
+	s:=Znet.NewServer("test") //传入服务器名
 	go s.Serve()
 ```
 
@@ -157,13 +168,25 @@ func (HandleRouter) PostHandle(requestInterface Zinterface.RequestI) {
 
 
 
-#### 实现长连接：
+### 并发测试:
 
-完成tcp连接后，
+#### 多连接测试：
 
-### 解决并发:
+1. 用tcpkali同时开256的tcp连接，设置tcp连接上限数目为1024，在不超过连接上限的情况下可以轻松建立
 
+![coonsStressTest02](./pics/coonsStressTest02.jpg)
 
+![coonsStressTest01](./pics/coonsStressTest01.jpg)
+
+2. 设置连接上限为128，先进行128次连接，塞满connectionManager的管理上限。然后再进行30次连接建立，可以看到总连接数维持在128，但是连接计数到了158，中间日志显示断开了最一开始的30个TCP连接。
+
+![](./pics/connStressTest03.jpg)
+
+![connStressTest04](./pics/connStressTest04.jpg)
+
+![connStressTest05](./pics/connStressTest05.jpg)
+
+#### 多消息压力测试
 
 ### 关于协议的选择理由
 
